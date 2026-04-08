@@ -148,6 +148,169 @@ POST /api/users created user: {"userId": "usr_999", "email": "test@example.com"}
 }
 ```
 
+## Test 4: Headers Generation with Authentication
+
+**Input:**
+```
+[start up]:
+POST /api/auth/login returns {"token": "jwt_token_abc123", "userId": "usr_789"}
+
+[case info]:
+{
+  "testCases": [
+    {
+      "testId": "TC001",
+      "request": {
+        "method": "POST",
+        "url": "/api/orders",
+        "body": {
+          "productId": "prod_456",
+          "quantity": 2
+        }
+      }
+    }
+  ]
+}
+
+[user input]:
+"Update TC001 to include proper headers"
+
+[openapi]: Available
+```
+
+**Expected Output (with skill):**
+```json
+{
+  "testCases": [
+    {
+      "testId": "TC001",
+      "request": {
+        "method": "POST",
+        "url": "/api/orders",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer {{startup_response.token}}"
+        },
+        "body": {
+          "productId": "prod_456",
+          "quantity": 2
+        }
+      }
+    }
+  ]
+}
+```
+
+**Validation Points:**
+- ✓ Content-Type header added automatically (body exists)
+- ✓ Authorization header with Bearer token extracted from startup
+- ✓ Template syntax used correctly: `{{startup_response.token}}`
+- ✓ Original request body preserved unchanged
+
+## Test 5: Test Case Type Detection - Positive Case
+
+**Input:**
+```
+[start up]:
+POST /api/products returns {"productId": "prod_999"}
+
+[case info]:
+{
+  "testCases": []
+}
+
+[user input]:
+"Add test case for successful user registration"
+
+[openapi]: Available with user schema
+```
+
+**Expected Output (with skill):**
+```json
+{
+  "testCases": [
+    {
+      "testId": "TC001",
+      "description": "Register new user - success case",
+      "request": {
+        "method": "POST",
+        "url": "/api/users",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "email": "user123@example.com",
+          "name": "Test User",
+          "password": "Password123!"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 201
+      }
+    }
+  ]
+}
+```
+
+**Validation Points:**
+- ✓ Realistic email generated (contains @ and .)
+- ✓ Descriptive name "Test User"
+- ✓ Content-Type header added (body exists)
+- ✓ Positive case inferred from "successful" keyword
+- ✓ Status code 201 for creation
+
+## Test 6: Test Case Type Detection - Negative Case
+
+**Input:**
+```
+[start up]:
+POST /api/products returns {"productId": "prod_888"}
+
+[case info]:
+{
+  "testCases": []
+}
+
+[user input]:
+"Add test case for invalid email validation error"
+
+[openapi]: Available with email format validation
+```
+
+**Expected Output (with skill):**
+```json
+{
+  "testCases": [
+    {
+      "testId": "TC001",
+      "description": "Register with invalid email - error case",
+      "request": {
+        "method": "POST",
+        "url": "/api/users",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "email": "invalid-email",
+          "name": "",
+          "password": "p"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400
+      }
+    }
+  ]
+}
+```
+
+**Validation Points:**
+- ✓ Invalid email format generated
+- ✓ Empty string for name field
+- ✓ Very short password for boundary testing
+- ✓ Negative case inferred from "invalid" and "error" keywords
+- ✓ Status code 400 for bad request
+
 **Validation Points:**
 - ✓ New test case added to array
 - ✓ Variable injection from startup

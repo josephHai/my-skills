@@ -6,11 +6,52 @@
       "request": {
         "method": "POST",
         "url": "/api/orders",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer {{startup_response.accessToken}}",
+          "X-Request-ID": "{{startup_response.requestId}}"
+        },
         "body": { "productId": "prod_456", "quantity": 2, "price": 87.42 }
       },
       "expectedResponse": {
         "statusCode": 201,
         "body": { "orderId": "order_123", "total": 199.98 }
+      }
+    },
+    {
+      "testId": "TC002",
+      "description": "Get user profile - positive case",
+      "request": {
+        "method": "GET",
+        "url": "/api/users/{userId}",
+        "headers": {
+          "Authorization": "Bearer {{startup_response.token}}"
+        },
+        "pathParams": {
+          "userId": "{{startup_response.userId}}"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 200
+      }
+    },
+    {
+      "testId": "TC003",
+      "description": "Register with invalid email - negative case",
+      "request": {
+        "method": "POST",
+        "url": "/api/users",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "email": "invalid-email",
+          "name": "",
+          "password": "p"
+        }
+      },
+      "expectedResponse": {
+        "statusCode": 400
       }
     }
   ]
