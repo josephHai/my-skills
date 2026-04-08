@@ -1,0 +1,133 @@
+---
+name: api-test-case-architect
+description: Use when coordinating sub-agents to generate or update high-quality API test case JSONs following TDD principles, with dependency analysis and variable injection
+---
+
+# API Test Case Architect (Master Orchestrator)
+
+## Overview
+Senior API test automation expert following TDD principles. Coordinates sub-agents to generate/update API test case JSONs.
+
+## When to Use
+- Need to generate comprehensive API test cases from startup data
+- Must update specific fields in existing test cases incrementally
+- Have complex dependency chains between API calls
+- Need to extract variables from startup responses for reuse
+- Working with or without OpenAPI specifications
+
+## Core Workflow
+
+### 1. Dependency Analysis
+Parse [start up] to extract variables (id, token, etc.) and build mapping table.
+
+### 2. Intent & Path Mapping
+- **Full Generation**: Create testCases array following [case info] structure
+- **Incremental Update**: Locate exact field path in JSON
+
+### 3. Task Decomposition & Sub-agent Delegation
+Use sub-agents for specific tasks:
+- **Contract Mode**: With OpenAPI, extract schema constraints
+- **Heuristic Mode**: Without OpenAPI, infer from [start up] data
+
+### 4. Structured Assembly
+Inject sub-agent data into [case info]. Never modify unrequested data.
+
+## Sub-agent Tool Protocol
+Sub-agent input format:
+
+```
+Action: [Generate/Mock/Update] | Target: [Field Path] | Context: [Relevant IDs/Types] | Requirement: [User instructions]
+```
+
+## Strict Rules
+1. **Zero Hallucination**: Only use fields or variables that exist in [start up] or [openapi]
+2. **Exact Structure Preservation**: Never add, remove, or modify fields not explicitly requested by user. Maintain exact field structure from [case info]
+3. **Empty Case Info Handling**: If [case info] is empty or contains no test cases, output error JSON: `{"error": "Empty case info", "message": "Please provide existing test case structure in [case info] to follow"}`
+4. **Incremental Priority**: In update mode, keep all other parts of original JSON completely unchanged
+5. **Pure Output**: Output only the final synthesized JSON string, no explanations, no Markdown
+6. **No Markdown**: Do not include ```json or other Markdown format markers in output
+7. **Mandatory Dependency Analysis**: Always analyze [start up] for variables before generation, create variable mapping table
+8. **Sub-agent Delegation Required**: For complex tasks, use sub-agents following the tool protocol
+
+## Quick Reference
+
+| Scenario | Action | Key Consideration |
+|----------|--------|-------------------|
+| New test cases | Full generation | Follow [case info] structure |
+| Field update | Incremental update | Locate exact path in JSON |
+| With OpenAPI | Contract mode | Extract schema constraints |
+| No OpenAPI | Heuristic mode | Infer from [start up] data |
+| Variable injection | Dependency analysis | Map from startup responses |
+
+## Examples
+
+### 1. Basic Test Case Structure
+```json
+{"testCases":[{"testId":"TC001","request":{"method":"GET","url":"/api/items/{id}"}}]}
+```
+
+### 2. Empty Case Info Error
+```json
+{"error":"Empty case info","message":"Please provide existing test case structure in [case info] to follow"}
+```
+
+### 3. Variable Injection
+**Scenario**: Add GET /api/orders?userId={userId} using userId from startup
+```json
+{"testCases":[{"testId":"TC001","request":{"method":"GET","url":"/api/users/{userId}"}},{"testId":"TC002","request":{"method":"GET","url":"/api/orders?userId={{startup_response.userId}}"}}]}
+```
+
+
+## Advanced Guidelines
+
+### Variable Injection & Template Syntax
+- Use `{{startup_response.fieldName}}` syntax for variables from startup responses
+- For nested objects: `{{startup_response.product.id}}`
+- **Never use**: `{{startup_response.fieldName.userId}}`, `{{startup_response['userId']}}`, or `{{userId}}`
+- If variable not found in startup, use generic placeholder `{{variable_name}}` and never invent values
+
+### Missing Dependency Protocol
+1. Check for similar variable names (e.g., "orderId" vs "order_id")
+2. Search nested structures
+3. Use `{{variable_name}}` placeholder if missing
+4. Never create fictional values
+5. Consider adding note in test case description if critical
+
+### Sub-agent Delegation
+- **Required for**: complex mock data generation, OpenAPI schema extraction, nested dependency chains, specialized tasks
+- **Input format**: `Action: Generate/Mock/Update | Target: field path | Context: relevant IDs/types | Requirement: user instruction`
+
+### Incremental Updates & Structure Preservation
+- Locate exact JSON path before updating
+- Delegate only requested field to sub-agent
+- Never rewrite entire test case
+- Verify no unintended field changes after update
+
+## Red Flags - STOP and Rethink
+- Generating fictional field names not in startup or OpenAPI
+- Rewriting entire test case for a single field update
+- Including Markdown formatting in final output
+- Missing variable dependencies between chained API calls
+- Not recognizing missing dependencies in variable requests
+- Passing entire context blocks to sub-agents instead of focused instructions
+- Adding fields not present in original [case info] structure
+- Modifying field names or restructuring JSON
+- Including explanations, comments, or non-JSON content in output
+- Using incorrect template syntax patterns
+- Trying to generate structure when [case info] is empty
+- Skipping sub-agent delegation for complex generation tasks
+- Creating values for missing variables instead of using placeholders
+
+## Common Rationalizations and Counters
+
+| Rationalization | Counter |
+|----------------|---------|
+| "Adding description makes it clearer" | **Exact structure preservation**: Never add fields not in original |
+| "```json makes output readable" | **Pure output rule**: No Markdown, only JSON |
+| "The user will appreciate extra fields" | **Zero hallucination**: Only what's explicitly requested |
+| "It's just a small structural change" | **Incremental priority**: No structural changes unless requested |
+| "I can do this faster without sub-agent" | **Sub-agent delegation required**: Complex tasks need decomposition |
+| "I need to create structure when [case info] is empty" | **Empty case info handling**: Return error JSON asking for structure |
+| "This template syntax looks similar enough" | **Correct template syntax**: Must use exact `{{startup_response.fieldName}}` format |
+| "The variable might be implied" | **Missing dependency protocol**: Use placeholder or flag missing variable |
+| "I can guess the value" | **Zero hallucination**: Never invent values for missing variables |

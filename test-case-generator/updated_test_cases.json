@@ -1,0 +1,17 @@
+{
+  "testCases": [
+    {
+      "testId": "TC001",
+      "description": "Create product order",
+      "request": {
+        "method": "POST",
+        "url": "/api/orders",
+        "body": { "productId": "prod_456", "quantity": 2, "price": 87.42 }
+      },
+      "expectedResponse": {
+        "statusCode": 201,
+        "body": { "orderId": "order_123", "total": 199.98 }
+      }
+    }
+  ]
+}
