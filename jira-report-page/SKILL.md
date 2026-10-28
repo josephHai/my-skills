@@ -33,7 +33,7 @@ description: Use when building an internal Jira ticket evaluation report page (J
 | 组件 | shadcn/ui（`-b base`，组件 vendored 进仓库）+ Base UI |
 | 图表 | 分数条用 CSS；趋势/构成再上 Recharts 3，复杂图表用 ECharts 6 |
 | 图标 | lucide-react（按需引入，随包打包） |
-| 字体 | Inter 正文（英文）+ 思源黑体中文回退 + Source Serif 大标题 + 更纱等宽证据块 |
+| 字体 | Univers Next（有授权）/ Inter 正文 + 思源黑体回退 + 更纱等宽证据块 |
 | 表格 | 原生 `<table>`；只有需要排序/筛选/虚拟滚动才上 TanStack Table 9 |
 | 测试 | Playwright（agent 自验 + 截图基线）+ Vitest（纯函数） |
 
@@ -49,9 +49,9 @@ description: Use when building an internal Jira ticket evaluation report page (J
 
 | 用途 | 字体 | 注意 |
 |---|---|---|
-| 正文 | Inter VF（报告正文为英文） | 14px / 行高 1.65；引用中文原文时回退思源黑体 VF，不出现方框 |
+| 正文 | Univers Next for HSBC（有授权）/ Inter VF | 16px / 行高 1.5；引用中文原文时回退思源黑体 VF，行高放宽到 1.7 |
 | 数字、英文、单位 | Inter VF | 全局 `font-variant-numeric: tabular-nums`，分数和百分比必须等宽 |
-| 大标题（报告名/总分） | Source Serif（思源宋体的拉丁部分） | **只用在 ≥24px 的标题和总分上**；小字号的衬线在 Windows 上会糊 |
+| 大标题（报告名/总分） | Inter 700 / Univers Next Bold | HSBC 全站不用衬线；层级靠字号与字重拉开，不靠字体切换 |
 | 原文证据块 | 更纱等宽（Sarasa Mono SC） | 中英混排等宽的最佳解，比 JetBrains Mono 多一套中文字形 |
 
 中文全量字体动辄 5–10MB，用 `cn-font-split` / `fontmin` 按 `unicode-range` 切片，或至少 `woff2` + 首屏切片 `preload`；数字字体单独 preload。内网带宽不是问题，但首屏抖动会直接毁掉「报告」的正式感。
@@ -64,6 +64,8 @@ npm 镜像解决的是**包**，不等于 shadcn 的 **registry**（CLI 拉的�
 - 有网机器上 `init` + `add` 全量组件，把 `components/ui/*` 提交进仓库，agent 只改本地文件。
 
 同时把 `ui.shadcn.com/llms.txt`、`base-ui.com/llms.txt`、Tailwind 的 theme/utility 文档落到 `docs/vendor/`，AGENTS.md 里写死「查组件 API 先读 vendor 文档」。
+
+shadcn 组件默认带 8px 圆角和投影。初始化后第一件事是把 `--radius-*` 全部归零、删掉 `shadow-*` 类——否则页面立刻不像 HSBC，这是套用这套视觉语言最容易漏的一步。
 
 ### 3. 验证闭环：报告页的 bug 都在「展开之后」
 
@@ -107,17 +109,19 @@ npx skills add addyosmani/web-quality-skills --skill accessibility -a universal
 
 ## 四、设计方向：给 Agent 的 Brief（可直接粘）
 
-把下面这段原样放进 prompt 或 `docs/design-brief.md`。它定义的是**风格约束**，不是实现细节——实现交给 agent，判断标准留在这里。
+视觉基调对齐 HSBC 数字端：**白底黑字、发丝灰线、方角、无阴影，红色只给动作和阻断项。**
+报告结构（三栏、证据引用、打印样式）保持不变，只换视觉语言。**不复刻汇丰六边形 Logo。**
+
+把下面这段原样放进 prompt 或 `docs/design-brief.md`：
 
 ```markdown
-# 设计方向：审计底稿（Audit Dossier）
+# 设计方向：HSBC 风格审计报告（HSBC-aligned Audit Report）
 
 这是一个面向业务方的 Jira ticket 评价报告页，内网使用，**界面标签与报告正文均为英文**（ticket 原文可能是中文）。
-它的气质应该像一份**审计底稿 / 质检报告**：精确、克制、证据优先、可追溯。
-不是 SaaS 官网，不是数据大屏，不是 AI 产品落地页。
+气质参考 HSBC 数字端：精确、克制、纸面感，靠排版和发丝线建立秩序，不靠卡片、圆角、阴影。
 
 ## 一句话
-用排版建立可信度，而不是用装饰建立科技感。
+白底、黑字、细灰线、方角；红色只留给动作和阻断。
 
 ## 页面结构（自上而下）
 1. 顶部工具条 56px：面包屑、ticket key、筛选、导出、打印
@@ -130,44 +134,44 @@ npx skills add addyosmani/web-quality-skills --skill accessibility -a universal
 
 ## 布局
 - 三栏：左侧 240px 工单列表（可收起）｜中间正文最大 880px 阅读宽度｜右侧 260px 元信息（sticky）
+- 内容区最大 1280px，12 列栅格，对齐到 8px
 - 正文左对齐，不要居中排版；英文行长 60–75 字符，引用中文原文时 36–45 字
-- 区块间距 56px，小节间距 32px；不要用卡片把每一块都框起来
+- 区块间距 56px，小节间距 32px；分节用 1px 横线 + 留白，不要用卡片包裹
 
-## 颜色（OKLCH，只用语义色）
-- 画布 oklch(0.98 0.004 95) 暖白；内容区纯白；分隔线 oklch(0.91 0.006 95)
-- 主文字 oklch(0.24 0.01 260)；次要 oklch(0.52 0.01 260)
-- 通过 oklch(0.52 0.11 155)｜警告 oklch(0.62 0.13 70)｜不通过 oklch(0.52 0.16 25)
-- 唯一强调色（链接/选中）：墨蓝 oklch(0.45 0.09 255)
-- **颜色只表达判定结果，不做装饰**。分数高低靠条形长度 + 数字，不靠红黄绿灯
-- 禁止：紫色/靛蓝主色、渐变、彩色图标底、多色图表
+## 颜色（HSBC token）
+- 画布纯白 #FFFFFF；分区与表头 #F3F3F3；分隔线 #D7D8D6；浅线 #EDEDED
+- 主文字 #000000；次级 #404040 / #5C5C5C；弱化 #767676
+- 品牌红 #DB0011：主按钮、链接、焦点环、阻断级问题；hover #AF000D，active #83000A
+- 通过 #008580（HSBC 自己的 agree 青绿）；有条件通过 #8A6D3B（赭黄，只用于文字和小图标）
+- 分数高低靠条形长度 + 数字，不靠颜色；不要红黄绿三色齐上
+- 禁止：渐变、彩色图标底、多色图表、旧链接蓝 #376798
 
 ## 字体
-- 正文：Inter VF（报告为英文），14px / 行高 1.65，字重 400
-- 中文回退：引用中文 ticket 原文时回退思源黑体 VF，行高放宽到 1.7
-- 数字：Inter VF，所有分数、百分比、日期启用 tabular-nums
-- 大标题与总分：Source Serif，字号 ≥24px 才用，正文绝不混排衬线
-- 证据原文块：更纱等宽 Sarasa Mono SC，13px（中英混排）
-- 字号阶：11 / 12 / 13 / 14 / 16 / 20 / 26 / 36
-- 字重只用 400 / 500 / 600；中文不要用 300（小字号发虚）
-- 不用全大写英文标签，不用宽字距 eyebrow，不用「一人一字加粗变色」的标题花活
+- 正文：Univers Next for HSBC（有授权时）/ Inter（替代），16px / 行高 1.5
+- 中文回退：思源黑体 VF；引用中文 ticket 原文时行高放宽到 1.7
+- 数字：tabular-nums，分数、百分比、日期右对齐
+- 字号阶：12 / 14 / 16 / 20 / 24 / 32 / 40 / 48；字重只用 400 / 500 / 700
+- 不用衬线体，不用全大写标签，不用宽字距 eyebrow
 
-## 形状
-- 圆角 4px（按钮/输入 6px）；以 1px 边框分隔，阴影只给浮层
-- 表格行高 36–40，单元格 8/12 padding；数字右对齐、标签左对齐
-- 图标 lucide，16/18px，线性，继承文字色；不用 emoji
+## 形状与组件
+- 圆角 0（标签最多 2px）；1px 实线边框；**全站不用 box-shadow**，浮层用 1px 边框 + 遮罩
+- 主按钮：红底白字、1px 红边、方角、高 40px；次按钮：黑底白字，或白底黑字 + 1px 黑边
+- 链接：红色，hover 加下划线并转黑（HSBC 自己的做法）
+- 焦点：2px solid #DB0011，offset 2px，任何情况下不移除
+- 表格：表头 #F3F3F3，行间 1px 线，无斑马纹，数字右对齐
+- 图标：线性 24px、1.5px 描边、单色；用 lucide 近似，不要圆头粗描边
 
 ## 动效
-- 只做状态反馈：展开/折叠 140ms ease-out，筛选结果更新 120ms 淡入
-- 不做页面入场编排、不做卡片 hover 位移、不做数字滚动
+- 只做状态反馈：150ms ease-out（展开/折叠、筛选更新）
+- 不做入场编排、不做卡片 hover 位移、不做数字滚动
 - 尊重 prefers-reduced-motion
 
 ## 证据与文案（英文输出）
 - 每个扣分项必须引用 ticket 原文片段：左侧 2px 竖线 + 等宽小字 + 字段名标签
 - 缺失字段写 "Not provided"，不要编造，也不要用 "N/A" 含糊过去
 - 结论用可执行动词："Add acceptance criteria and re-review."
-- 标签用 Title Case，正文句子大小写；不要全大写强调
-- 禁止出现：AI-powered、insights、one-click、leverage、✨ 等营销词与装饰符
-- 中文原文引用保持原样，不翻译、不改写
+- 语气平实、主动语态（HSBC tone of voice）；标签用 Title Case，正文句子大小写
+- 禁止出现：感叹号、emoji、AI-powered、insights、one-click、leverage、✨
 
 ## 打印
 - @media print：隐藏左侧列表与工具条，正文单栏，A4 分页，区块不跨页断裂，保留页脚规则说明
@@ -175,10 +179,11 @@ npx skills add addyosmani/web-quality-skills --skill accessibility -a universal
 ## 硬性禁止清单
 1. 没有 hero 区、没有大标语、没有渐变背景
 2. 没有「彩色圆底图标 + 大数字 + 小标签」的 KPI 卡阵列
-3. 不用 rounded-2xl / shadow-xl / 毛玻璃
-4. 不用超过 2 种图表色
-5. 不写假数据占位，不写 lorem ipsum
-6. 不在每个 section 上加 fade-in-up
+3. 不用圆角卡片、不用 shadow、不用毛玻璃
+4. 不用衬线体、不用紫/靛蓝主色、图表色不超过 2 种
+5. 不复刻 HSBC 六边形 Logo，不模仿其版式商标
+6. 不写假数据占位，不写 lorem ipsum
+7. 不在每个 section 上加 fade-in-up
 ```
 
 ---
@@ -215,4 +220,3 @@ npx skills add addyosmani/web-quality-skills --skill accessibility -a universal
 - [ ] 打印预览：单栏、无侧栏、页脚规则说明在
 - [ ] 空状态：无 ticket、无问题项、规则未命中，各有明确文案
 - [ ] 首屏无布局抖动（字体加载用 `font-display: swap` + 尺寸兜底）
-```
