@@ -1,97 +1,97 @@
 ---
 name: jira-report-page
-description: Use when building an internal report page that presents Jira ticket completeness/compliance review results — covers the stack, Tailwind v4 + shadcn tokens, the "Audit Dossier" visual direction, and a ready-to-paste design brief for a coding agent.
+description: Use when building an internal Jira ticket evaluation report page (Jira ticket 评价报告页) that shows completeness/compliance review results — covers stack choice, Tailwind v4 + shadcn tokens, the "Audit Dossier" visual direction, and the exact design brief to hand to a coding agent.
 ---
 
-# Jira Ticket Evaluation Report: Agent Toolkit & Design Direction
+# Jira Ticket 评价报告页：Agent 工具集与设计方向
 
-> Context: internal deployment. The page presents completeness and compliance review results for Jira tickets.
-> Goal: get a coding agent to produce a **credible, restrained, readable** business report — not another SaaS template.
+## 何时使用
 
-## When to use
+- 要做一个内网报告页，展示 Jira ticket 的「完整性 / 规范性」评价结果
+- 需要决定这个页面用什么技术栈、装哪些 skill、怎么把设计风格讲给 agent
+- 已经有一版页面，但看起来像后台模板 / SaaS 落地页，需要拉回「审计报告」的气质
 
-- You need an internal report page showing whether Jira tickets are complete and follow the writing standard
-- You need to decide the stack, which skills to install, and how to describe the visual direction to the agent
-- A first version already exists but reads like an admin template or a SaaS landing page, and needs to be pulled back toward an "audit report"
+## 怎么用
 
-## How to use
+1. 把「一、结论」的表作为技术选型基线，按实际项目调整（团队已有 antd/Mantine 时可替换组件层）
+2. 按「三、Skills」装 5 个核心 skill，`frontend-design` 这类营销页取向的只在明确需要时加
+3. 把「四、设计方向」的 markdown 块原样放进项目 `docs/design-brief.md`，或在 prompt 里直接粘贴
+4. 把「五、AGENTS.md 片段」落到仓库根目录，作为 agent 的长期约束
+5. 交付前跑「六、验收清单」，并让 agent 用 Playwright 截图自验
 
-1. Treat the table in §1 as the baseline stack; swap the component layer only if the team already standardizes on antd/Mantine
-2. Install the five core skills in §3. Add marketing-oriented ones (`frontend-design`) only when explicitly needed
-3. Paste the markdown block in §4 into `docs/design-brief.md`, or inline into the prompt
-4. Drop the §5 snippet into the repo root as `AGENTS.md` so the constraints persist across sessions
-5. Before shipping, run the §6 checklist and have the agent verify with Playwright screenshots
+> 场景：内网部署，展示 Jira ticket 的「完整性 / 规范性」评价结果。
+> 目标：让 coding agent 一次产出**可信、克制、可读**的业务报告页，而不是又一个 SaaS 模板。
 
 ---
 
-## 1. One stack is enough
+## 一、结论：一套就够了
 
-| Layer | Choice |
+| 层 | 选择 |
 |---|---|
-| Build | Vite 8 + React 19 + TypeScript |
-| Styling | Tailwind CSS 4.3 (`@tailwindcss/vite`, CSS-first `@theme`) |
-| Components | shadcn/ui (`-b base`, components vendored into the repo) + Base UI |
-| Charts | CSS bars for scores; Recharts 3 for trends/composition; ECharts 6 for complex charts |
-| Icons | lucide-react (imported per-icon, bundled) |
-| Type | Source Han Sans VF body + Inter numerals + Source Han Serif (display only) + Sarasa Mono SC (evidence) |
-| Tables | Plain `<table>`; TanStack Table 9 only for sorting, multi-column filtering, or virtualization |
-| Testing | Playwright (agent self-verification + screenshot baselines) + Vitest (pure functions) |
+| 构建 | Vite 8 + React 19 + TypeScript |
+| 样式 | Tailwind CSS 4.3（`@tailwindcss/vite`，CSS-first `@theme`） |
+| 组件 | shadcn/ui（`-b base`，组件 vendored 进仓库）+ Base UI |
+| 图表 | 分数条用 CSS；趋势/构成再上 Recharts 3，复杂图表用 ECharts 6 |
+| 图标 | lucide-react（按需引入，随包打包） |
+| 字体 | Inter 正文（英文）+ 思源黑体中文回退 + Source Serif 大标题 + 更纱等宽证据块 |
+| 表格 | 原生 `<table>`；只有需要排序/筛选/虚拟滚动才上 TanStack Table 9 |
+| 测试 | Playwright（agent 自验 + 截图基线）+ Vitest（纯函数） |
 
-**Why not Mantine / antd**: they get you there faster, but their default look *is* the admin template. This page's job is to make the verdict believable — it needs document feel and evidence feel, not stacked components. When resources are not a constraint, there is no reason to trade that away.
+**为什么不用 Mantine / antd**：它们更快，但默认长相就是「后台模板」，而这份页面的核心是**让人相信评价结论**——需要文档感、证据感，不是组件堆叠。资源不缺时，没有理由为了省事牺牲这一点。
 
 ---
 
-## 2. Resources are not the bottleneck — spend on these three
+## 二、资源不是瓶颈，把预算花在这三处
 
-With an internal npm mirror and a full font library, the usual offline compromises are off the table. What actually decides quality is the following.
+镜像源和字库齐了，之前那些「离线兜底」的妥协都可以扔掉。真正决定成败的是下面三件事：
 
-### 2.1 Typography
+### 1. 字体：英文正文 + 中文原文引用，最容易露怯也最容易出质感
 
-| Purpose | Face | Notes |
+| 用途 | 字体 | 注意 |
 |---|---|---|
-| Body | Source Han Sans VF (Noto Sans SC VF) / HarmonyOS Sans | 14px, line-height 1.65; never use weight 300 for CJK |
-| Numerals, Latin, units | Inter VF | Global `font-variant-numeric: tabular-nums`; scores and percentages must align |
-| Display (report title, total score) | Source Han Serif | **Only at ≥24px**; serif at 13–14px renders muddy on Windows |
-| Evidence quotations | Sarasa Mono SC | Best mono for mixed CJK/Latin; one more CJK set than JetBrains Mono |
+| 正文 | Inter VF（报告正文为英文） | 14px / 行高 1.65；引用中文原文时回退思源黑体 VF，不出现方框 |
+| 数字、英文、单位 | Inter VF | 全局 `font-variant-numeric: tabular-nums`，分数和百分比必须等宽 |
+| 大标题（报告名/总分） | Source Serif（思源宋体的拉丁部分） | **只用在 ≥24px 的标题和总分上**；小字号的衬线在 Windows 上会糊 |
+| 原文证据块 | 更纱等宽（Sarasa Mono SC） | 中英混排等宽的最佳解，比 JetBrains Mono 多一套中文字形 |
 
-A full CJK font is 5–10MB. Slice it with `cn-font-split` or `fontmin` by `unicode-range`, serve `woff2`, and `preload` the numeral face separately. Internal bandwidth is not the issue — first-paint font swapping is what destroys the formality of a report.
+中文全量字体动辄 5–10MB，用 `cn-font-split` / `fontmin` 按 `unicode-range` 切片，或至少 `woff2` + 首屏切片 `preload`；数字字体单独 preload。内网带宽不是问题，但首屏抖动会直接毁掉「报告」的正式感。
 
-### 2.2 Component foundation
+### 2. 组件地基：一次性配好，别让 agent 每次猜
 
-An npm mirror solves **packages**; it does not solve the **shadcn registry** (the CLI fetches JSON from ui.shadcn.com). Pick one path and set it up once:
+npm 镜像解决的是**包**，不等于 shadcn 的 **registry**（CLI 拉的是 ui.shadcn.com 的 JSON）。两条路选一条，一次配好：
 
-- Host the registry statically on the intranet and point `registries` in `components.json` at it, so the agent can keep using `shadcn add`;
-- Or run `init` + `add` on a networked machine, commit `components/ui/*` into the repo, and let the agent edit local files only.
+- 内网静态托管 registry，`components.json` 的 `registries` 指向它 —— 之后 agent 可以正常 `shadcn add`；
+- 有网机器上 `init` + `add` 全量组件，把 `components/ui/*` 提交进仓库，agent 只改本地文件。
 
-Also vendor the docs the agent will need: `ui.shadcn.com/llms.txt`, `base-ui.com/llms.txt`, and the Tailwind theme/utility pages into `docs/vendor/`. Write "read the vendored docs before writing component code" into AGENTS.md.
+同时把 `ui.shadcn.com/llms.txt`、`base-ui.com/llms.txt`、Tailwind 的 theme/utility 文档落到 `docs/vendor/`，AGENTS.md 里写死「查组件 API 先读 vendor 文档」。
 
-### 2.3 Verification loop
+### 3. 验证闭环：报告页的 bug 都在「展开之后」
 
-Most bugs in a report page appear *after* something is expanded. Give Playwright screenshot baselines (`toHaveScreenshot`) across three viewports and two states (default / expanded). The agent diffs its own changes, which catches layout regressions better than any code review. There is no reason to skip this step.
+给 Playwright 配视觉基线（`toHaveScreenshot`），固定三个视口 + 两个状态（默认 / 展开明细）。Agent 改完样式自己跑一遍对比，比任何 code review 都有效。这一步在资源充足时没有理由省。
 
 ---
 
-## 3. Skills: install five, three optional
+## 三、Skills：装这 5 个，另 3 个按需
 
-### Core
+### 核心（建议全装）
 
-| Skill | Why this one |
+| Skill | 为什么是它 |
 |---|---|
-| [`interface-design`](https://skills.sh/dammyjay93/interface-design/interface-design) | Craft guidance aimed squarely at **dashboards, admin panels, and data interfaces**. A better fit than `frontend-design`, which is marketing-page oriented (hero sections, typographic personality) and pulls this page off course |
-| [`shadcn`](https://skills.sh/shadcn-ui/ui/shadcn) | Reads `components.json` for project context (base library, icon set, installed components) and generates the correct API, instead of hand-rolling Dialog/Popover focus traps and scroll locks |
-| [`webapp-testing`](https://skills.sh/anthropics/skills/webapp-testing) | Playwright-driven: the agent opens the page, screenshots it, expands a row, and checks the result. The classic failure here ("layout collapses after expand") only surfaces when you actually run it |
-| [`web-design-guidelines`](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | For the review pass: accessibility, semantics, and form details against the Web Interface Guidelines |
-| [`accessibility`](https://skills.sh/addyosmani/web-quality-skills/accessibility) | Reviewers live on the keyboard; focus order, contrast, and ARIA need a dedicated pass |
+| [`interface-design`](https://skills.sh/dammyjay93/interface-design/interface-design) | 专门面向 **dashboard / admin / 数据界面** 的设计 craft 指南。比 `frontend-design` 更贴这个场景（后者是营销页取向，hero、排版个性那套用在这里会跑偏） |
+| [`shadcn`](https://skills.sh/shadcn-ui/ui/shadcn) | 读 `components.json` 拿项目上下文（base 是 radix 还是 base、图标库、已装组件），按正确 API 生成，避免手搓 Dialog/Popover 的焦点与滚动锁 |
+| [`webapp-testing`](https://skills.sh/anthropics/skills/webapp-testing) | Playwright 驱动，让 agent 自己开页面、截图、点开折叠项验证。报告页最容易错的是「展开后布局崩」，只有真跑一遍才发现 |
+| [`web-design-guidelines`](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | review 阶段用：按 Web Interface Guidelines 检查 a11y / 语义 / 表单细节 |
+| [`accessibility`](https://skills.sh/addyosmani/web-quality-skills/accessibility) | 内网工具常被键盘用户重度使用（审核岗），焦点顺序、对比度、aria 必须过一遍 |
 
-### Optional
+### 按需
 
-| Skill | When to add it |
+| Skill | 什么时候加 |
 |---|---|
-| [`impeccable`](https://skills.sh/pbakaus/impeccable/impeccable) | The page runs; you want one critique/polish round |
-| [`tanstack-table`](https://skills.sh/tanstack-skills/tanstack-skills/tanstack-table) | The ticket list needs sorting, multi-column filters, or virtualization |
-| [`frontend-design`](https://skills.sh/anthropics/skills/frontend-design) | Only if you want stronger typographic opinion — and you must tell it explicitly: **this is a dense internal report, not a landing page; ignore the hero and entrance-animation guidance** |
+| [`impeccable`](https://skills.sh/pbakaus/impeccable/impeccable) | 页面已经能跑，需要一轮 critique / polish 时 |
+| [`tanstack-table`](https://skills.sh/tanstack-skills/tanstack-skills/tanstack-table) | 工单列表要做排序、多列筛选、虚拟滚动 |
+| [`frontend-design`](https://skills.sh/anthropics/skills/frontend-design) | 只在想要「排版更有主张」时加，并且必须明确告诉它：**这是密集型内部报告，不是 landing page，忽略 hero / 入场动效相关建议** |
 
-Install (run on a networked machine, then commit `.agents/skills/`):
+安装（有网机器执行，随后提交 `.agents/skills/`）：
 
 ```bash
 npx skills add dammyjay93/interface-design --skill interface-design -a universal
@@ -101,112 +101,118 @@ npx skills add vercel-labs/agent-skills --skill web-design-guidelines -a univers
 npx skills add addyosmani/web-quality-skills --skill accessibility -a universal
 ```
 
-> Do not stack `frontend-design` + `impeccable` + `ui-ux-pro-max` + taste variants. Three or more "taste" skills fight each other and the output gets *more* generic, not less.
+> 不要装 `frontend-design` + `impeccable` + `ui-ux-pro-max` + 各种 taste 系一起上：四个「审美类」skill 会互相打架，最后产出反而更套路。
 
 ---
 
-## 4. Design direction: the brief to hand the agent
+## 四、设计方向：给 Agent 的 Brief（可直接粘）
 
-Paste the block below verbatim into the prompt or `docs/design-brief.md`. It defines **style constraints**, not implementation. Implementation is the agent's job; the standard of judgment lives here.
+把下面这段原样放进 prompt 或 `docs/design-brief.md`。它定义的是**风格约束**，不是实现细节——实现交给 agent，判断标准留在这里。
 
 ```markdown
-# Design direction: Audit Dossier
+# 设计方向：审计底稿（Audit Dossier）
 
-This is an internal report page for Jira ticket evaluation, in English, used by reviewers and team leads.
-The register should read like an **audit workpaper / QA report**: precise, restrained, evidence-first, traceable.
-It is not a SaaS marketing site, not a data-wall dashboard, not an AI product landing page.
+这是一个面向业务方的 Jira ticket 评价报告页，内网使用，**界面标签与报告正文均为英文**（ticket 原文可能是中文）。
+它的气质应该像一份**审计底稿 / 质检报告**：精确、克制、证据优先、可追溯。
+不是 SaaS 官网，不是数据大屏，不是 AI 产品落地页。
 
-## In one line
-Build credibility with typography, not with decoration.
+## 一句话
+用排版建立可信度，而不是用装饰建立科技感。
 
-## Page structure (top to bottom)
-1. Toolbar, 56px: breadcrumb, ticket key, filters, export, print
-2. Report header: ticket title, verdict badge (Pass / Pass with conditions / Fail), total score (large, tabular-nums), review timestamp
-3. Score overview: one horizontal bar per dimension with weight and score, so the weak spot is visible at a glance
-4. Key findings: grouped as Blocking / Major / Minor; every item must carry quoted evidence
-5. Dimension detail: a table, expandable to show the rule hit and the reasoning
-6. Raw ticket fields: collapsed by default (title, description, acceptance criteria, links)
-7. Footer: rubric version, model/rule source, generated-at, disclaimer
+## 页面结构（自上而下）
+1. 顶部工具条 56px：面包屑、ticket key、筛选、导出、打印
+2. 报告头：ticket 标题、结论徽标（Pass / Pass with conditions / Fail）、总分（大号 tabular-nums）、评审时间
+3. 评分总览：各维度横向条形 + 权重 + 得分，一眼看出短板在哪
+4. 关键问题：按「阻断 / 重要 / 建议」三级分组，每条必须带**原文证据**
+5. 维度明细：表格，可展开看判定依据与命中规则
+6. 原始 ticket 字段：默认折叠（标题、描述、验收标准、附件链接）
+7. 页脚：评分规则版本、模型/规则来源、生成时间、免责说明
 
-## Layout
-- Three columns: 240px ticket rail (collapsible) | body capped at 880px measure | 260px sticky metadata panel
-- Left-aligned text, never centered; keep CJK paragraphs at 36–45 characters per line, English at 60–75
-- 56px between sections, 32px between sub-blocks; do not wrap every block in a card
+## 布局
+- 三栏：左侧 240px 工单列表（可收起）｜中间正文最大 880px 阅读宽度｜右侧 260px 元信息（sticky）
+- 正文左对齐，不要居中排版；英文行长 60–75 字符，引用中文原文时 36–45 字
+- 区块间距 56px，小节间距 32px；不要用卡片把每一块都框起来
 
-## Color (OKLCH, semantic only)
-- Canvas oklch(0.98 0.004 95); content surface pure white; divider oklch(0.91 0.006 95)
-- Primary text oklch(0.24 0.01 260); secondary oklch(0.52 0.01 260)
-- Pass oklch(0.52 0.11 155) | Warning oklch(0.62 0.13 70) | Fail oklch(0.52 0.16 25)
-- Single accent for links/selection: ink blue oklch(0.45 0.09 255)
-- **Color encodes verdict only, never decoration.** Score magnitude comes from bar length plus the number, not from a traffic light
-- Banned: purple/indigo primary, gradients, tinted icon circles, multi-color charts
+## 颜色（OKLCH，只用语义色）
+- 画布 oklch(0.98 0.004 95) 暖白；内容区纯白；分隔线 oklch(0.91 0.006 95)
+- 主文字 oklch(0.24 0.01 260)；次要 oklch(0.52 0.01 260)
+- 通过 oklch(0.52 0.11 155)｜警告 oklch(0.62 0.13 70)｜不通过 oklch(0.52 0.16 25)
+- 唯一强调色（链接/选中）：墨蓝 oklch(0.45 0.09 255)
+- **颜色只表达判定结果，不做装饰**。分数高低靠条形长度 + 数字，不靠红黄绿灯
+- 禁止：紫色/靛蓝主色、渐变、彩色图标底、多色图表
 
-## Typography
-- Body: Source Han Sans VF (Noto Sans SC VF), 14px / 1.65, weight 400
-- Numerals and Latin: Inter VF; tabular-nums on every score, percentage, and date
-- Display and total score: Source Han Serif, only at ≥24px; never mix serif into body copy
-- Evidence quotations: Sarasa Mono SC, 13px
+## 字体
+- 正文：Inter VF（报告为英文），14px / 行高 1.65，字重 400
+- 中文回退：引用中文 ticket 原文时回退思源黑体 VF，行高放宽到 1.7
+- 数字：Inter VF，所有分数、百分比、日期启用 tabular-nums
+- 大标题与总分：Source Serif，字号 ≥24px 才用，正文绝不混排衬线
+- 证据原文块：更纱等宽 Sarasa Mono SC，13px（中英混排）
+- 字号阶：11 / 12 / 13 / 14 / 16 / 20 / 26 / 36
+- 字重只用 400 / 500 / 600；中文不要用 300（小字号发虚）
+- 不用全大写英文标签，不用宽字距 eyebrow，不用「一人一字加粗变色」的标题花活
 
-## Shape
-- Radius 4px (6px on buttons and inputs); separate with 1px borders; shadows only on overlays
-- Table rows 36–40px, cell padding 8/12; numbers right-aligned, labels left-aligned
-- Icons from lucide at 16/18px, line style, inheriting text color; no emoji
+## 形状
+- 圆角 4px（按钮/输入 6px）；以 1px 边框分隔，阴影只给浮层
+- 表格行高 36–40，单元格 8/12 padding；数字右对齐、标签左对齐
+- 图标 lucide，16/18px，线性，继承文字色；不用 emoji
 
-## Motion
-- State feedback only: expand/collapse 140ms ease-out, filtered results 120ms fade
-- No page-load choreography, no card hover displacement, no counting-up numbers
-- Respect prefers-reduced-motion
+## 动效
+- 只做状态反馈：展开/折叠 140ms ease-out，筛选结果更新 120ms 淡入
+- 不做页面入场编排、不做卡片 hover 位移、不做数字滚动
+- 尊重 prefers-reduced-motion
 
-## Evidence and copy
-- Every deduction quotes the ticket verbatim: 2px left rule, mono 13px, field-name label
-- Missing fields read "Not provided" — never invent content, never soften it to "N/A"
-- Verdicts are actionable: "Add acceptance criteria and re-review"
-- Banned vocabulary: AI-powered, insights, one-click, leverage, ✨ or any decorative glyph
-- If the product ships in another language, keep these tone rules and translate labels only
+## 证据与文案（英文输出）
+- 每个扣分项必须引用 ticket 原文片段：左侧 2px 竖线 + 等宽小字 + 字段名标签
+- 缺失字段写 "Not provided"，不要编造，也不要用 "N/A" 含糊过去
+- 结论用可执行动词："Add acceptance criteria and re-review."
+- 标签用 Title Case，正文句子大小写；不要全大写强调
+- 禁止出现：AI-powered、insights、one-click、leverage、✨ 等营销词与装饰符
+- 中文原文引用保持原样，不翻译、不改写
 
-## Print
-- @media print: hide the rail and toolbar, single column, A4 pagination, avoid breaking blocks across pages, keep the rubric footer
+## 打印
+- @media print：隐藏左侧列表与工具条，正文单栏，A4 分页，区块不跨页断裂，保留页脚规则说明
 
-## Hard bans
-1. No hero section, no tagline, no gradient background
-2. No grid of "tinted icon + big number + small label" KPI cards
-3. No rounded-2xl, no shadow-xl, no glassmorphism
-4. No more than two chart colors
-5. No placeholder or lorem-ipsum content
-6. No fade-in-up on every section
+## 硬性禁止清单
+1. 没有 hero 区、没有大标语、没有渐变背景
+2. 没有「彩色圆底图标 + 大数字 + 小标签」的 KPI 卡阵列
+3. 不用 rounded-2xl / shadow-xl / 毛玻璃
+4. 不用超过 2 种图表色
+5. 不写假数据占位，不写 lorem ipsum
+6. 不在每个 section 上加 fade-in-up
 ```
 
 ---
 
-## 5. AGENTS.md snippet
+## 五、AGENTS.md 片段
 
 ```markdown
-## Project
-Internal Jira ticket evaluation report. Vite 8 + React 19 + TS + Tailwind 4.3 + shadcn(base).
+## 项目
+内网 Jira ticket 评价报告页。Vite 8 + React 19 + TS + Tailwind 4.3 + shadcn(base)。
 
-## Commands
+## 命令
 - pnpm dev / build / lint / test
-- Before commit: pnpm build && pnpm lint && pnpm test
+- 提交前必须：pnpm build && pnpm lint && pnpm test
 
-## Constraints
-- Dependencies come from the internal npm mirror; no CDN, no remote fonts, no runtime calls to external APIs
-- Fonts are self-hosted in public/fonts (woff2, sliced); preload the numeral face
-- Styling uses Tailwind classes + `@theme` tokens only; no new CSS-in-JS dependency
-- Read docs/vendor/ (shadcn, base-ui, Tailwind) before writing component code; do not rely on memory
-- Visual direction lives in docs/design-brief.md; it wins any conflict
-- Allowed libraries: react, tailwind, shadcn(base), lucide-react, recharts (as needed), date-fns
-- Justify any new dependency before adding it
+## 约束
+- 依赖走内部 npm 镜像；不引 CDN、远程字体、运行时外部 API
+- 字体自托管（public/fonts，woff2 + 切片），数字字体单独 preload
+- 样式只用 Tailwind 类 + `@theme` token；禁止新增 CSS-in-JS 依赖
+- 组件查 API 先读 docs/vendor/（shadcn、base-ui、tailwind），不要凭记忆
+- 设计方向见 docs/design-brief.md，冲突时以 brief 为准
+- 只允许这些库：react, tailwind, shadcn(base), lucide-react, recharts（按需）, date-fns
+- 新增任何依赖前先说明理由
 ```
 
 ---
 
-## 6. Acceptance checklist
+## 六、验收清单（交给 agent 自检）
 
-- [ ] No horizontal scroll at 1280 / 1440 / 1920; the metadata panel never covers the body
-- [ ] Keyboard Tab reaches the ticket rail, the dimension table, and an expanded row; focus is visible
-- [ ] Contrast: body and secondary text ≥ 4.5:1; verdict is never conveyed by color alone
-- [ ] A 60+ character ticket title truncates at two lines without breaking the layout
-- [ ] Layout survives both extremes: all dimensions at 0 and all at full score
-- [ ] Print preview: single column, no rail, rubric footer present
-- [ ] Empty states: no tickets, no findings, rubric not matched — each has explicit copy
-- [ ] No layout shift on first paint (font-display: swap + size fallback)
+- [ ] 1280 / 1440 / 1920 三档宽度下无横向滚动，右侧栏不遮挡正文
+- [ ] 键盘 Tab 能走完「工单列表 → 维度表 → 展开明细」，焦点可见
+- [ ] 对比度：正文 ≥ 4.5:1，次要文字 ≥ 4.5:1，语义色配文字不单靠颜色
+- [ ] 超长 ticket 标题（60+ 字）两行截断不撑破布局
+- [ ] 全部维度 0 分 / 全部满分两种极端数据下版面不塌
+- [ ] 打印预览：单栏、无侧栏、页脚规则说明在
+- [ ] 空状态：无 ticket、无问题项、规则未命中，各有明确文案
+- [ ] 首屏无布局抖动（字体加载用 `font-display: swap` + 尺寸兜底）
+```
